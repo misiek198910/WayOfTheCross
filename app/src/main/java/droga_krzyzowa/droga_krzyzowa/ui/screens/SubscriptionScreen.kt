@@ -59,12 +59,12 @@ fun SubscriptionScreen(navController: NavController) {
                 modifier = Modifier
                     .statusBarsPadding()
                     .fillMaxWidth()
-                    .padding(12.dp),
+                    .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
                     onClick = { navController.popBackStack() },
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -75,14 +75,14 @@ fun SubscriptionScreen(navController: NavController) {
                 Icon(
                     imageVector = Icons.Default.WorkspacePremium,
                     contentDescription = null,
-                    modifier = Modifier.size(35.dp).padding(start = 8.dp),
+                    modifier = Modifier.size(28.dp).padding(start = 4.dp),
                     tint = GoldPrimary
                 )
                 Text(
                     text = stringResource(id = R.string.subs_title),
-                    modifier = Modifier.padding(start = 8.dp),
+                    modifier = Modifier.padding(start = 6.dp),
                     color = Color.White,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -93,47 +93,47 @@ fun SubscriptionScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xE61A1A1A)),
                 border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.5f))
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
+                    modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = stringResource(id = R.string.subs_card_title),
                         color = Color.White,
-                        fontSize = 22.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
                         text = stringResource(id = R.string.subs_description),
-                        modifier = Modifier.padding(vertical = 12.dp),
+                        modifier = Modifier.padding(vertical = 8.dp),
                         color = Color(0xFFBDBDBD),
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         textAlign = TextAlign.Center
                     )
 
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-                            .padding(16.dp)
+                            .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                            .padding(12.dp)
                     ) {
                         BenefitRow(text = stringResource(id = R.string.subs_benefit_no_ads))
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         BenefitRow(text = stringResource(id = R.string.subs_benefit_support))
                     }
 
                     HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 24.dp),
+                        modifier = Modifier.padding(vertical = 12.dp),
                         thickness = 1.dp,
                         color = Color.White.copy(alpha = 0.2f)
                     )
@@ -141,18 +141,18 @@ fun SubscriptionScreen(navController: NavController) {
                     Text(
                         text = stringResource(id = R.string.subs_status_label),
                         color = Color(0xFFBDBDBD),
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
                         text = if (isPremium) stringResource(id = R.string.subs_status_active) else stringResource(id = R.string.subs_status_inactive),
                         color = if (isPremium) Color(0xFF4CAF50) else Color.White,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     SubscriptionButton(
                         text = if (isPremium) {
@@ -160,7 +160,7 @@ fun SubscriptionScreen(navController: NavController) {
                         } else {
                             monthlyPrice?.let {
                                 stringResource(R.string.subs_monthly_button, it)
-                            } ?: stringResource(R.string.load_data) // "Pobieranie ceny..."
+                            } ?: stringResource(R.string.load_data)
                         },
                         onClick = {
                             if (isPremium) {
@@ -173,7 +173,7 @@ fun SubscriptionScreen(navController: NavController) {
                     )
 
                     if (!isPremium) {
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         SubscriptionButton(
                             text = yearlyPrice?.let {
                                 stringResource(R.string.subs_annual_button, it)
@@ -184,17 +184,17 @@ fun SubscriptionScreen(navController: NavController) {
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     TextButton(onClick = { viewModel.restorePurchases() }) {
-                        Text("Przywróć zakup", color = GoldLight)
+                        Text("Przywróć zakup", color = GoldLight, fontSize = 14.sp)
                     }
 
                     Text(
                         text = stringResource(id = R.string.subs_footer_info),
-                        modifier = Modifier.padding(top = 24.dp),
+                        modifier = Modifier.padding(top = 12.dp),
                         color = Color(0xFF9E9E9E),
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -210,10 +210,10 @@ fun BenefitRow(text: String) {
             imageVector = Icons.Default.Check,
             contentDescription = null,
             tint = GoldPrimary,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(18.dp)
         )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(text = text, color = Color.White, fontSize = 16.sp)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = text, color = Color.White, fontSize = 14.sp)
     }
 }
 
@@ -223,18 +223,18 @@ fun SubscriptionButton(text: String, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(48.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = DeepPurpleLight
         ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.6f))
     ) {
         Text(
             text = text,
             color = GoldLight,
             fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
+            fontSize = 14.sp
         )
     }
 }

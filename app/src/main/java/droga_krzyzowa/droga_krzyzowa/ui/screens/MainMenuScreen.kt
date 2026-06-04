@@ -108,10 +108,9 @@ fun MainMenuScreen(
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center // WYCENTROWANIE ZAWARTOŚCI W PIONIE
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-
                 Image(
                     painter = painterResource(id = R.drawable.logowide),
                     contentDescription = "Logo Wide",
