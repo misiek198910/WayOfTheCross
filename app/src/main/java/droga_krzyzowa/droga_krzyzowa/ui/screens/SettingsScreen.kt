@@ -9,7 +9,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,6 +50,9 @@ fun SettingsScreen(navController: NavController,
     }
 
     val sheetState = rememberModalBottomSheetState()
+
+    // Inicjalizacja handlera do otwierania linków URI
+    val uriHandler = LocalUriHandler.current
 
     Scaffold(
         containerColor = DeepPurple,
@@ -114,6 +117,13 @@ fun SettingsScreen(navController: NavController,
                 text = stringResource(id = R.string.settings_privacy_policy),
                 icon = Icons.Default.Security,
                 onClick = onNavigateToPrivacyPolicy
+            )
+
+            // Przycisk: Postaw kawę
+            SettingsMenuButton(
+                text = stringResource(id = R.string.settings_coffee),
+                icon = Icons.Default.Coffee,
+                onClick = { uriHandler.openUri("https://ko-fi.com/michals") }
             )
         }
 
@@ -194,10 +204,10 @@ fun SettingsMenuButton(text: String, icon: ImageVector, onClick: () -> Unit) {
             .fillMaxWidth()
             .height(70.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = DeepPurpleLight // Używamy jaśniejszego fioletu dla kontrastu [cite: 2026-02-17]
+            containerColor = DeepPurpleLight // Używamy jaśniejszego fioletu dla kontrastu
         ),
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.5f)) // Złota obwoluta jak w main [cite: 2026-02-17]
+        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.5f)) // Złota obwoluta jak w main
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),

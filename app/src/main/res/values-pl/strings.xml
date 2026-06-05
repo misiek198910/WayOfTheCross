@@ -57,6 +57,8 @@
     <string name="subs_annual_button">Rocznie (7 dni próbne) - %s</string>
     <string name="load_data">Pobieranie ceny…</string>
 
+    <string name="settings_coffee">Postaw kawę</string>
+
 
     <string-array name="gorzkie_zale_titles">
         <item>Część I</item>

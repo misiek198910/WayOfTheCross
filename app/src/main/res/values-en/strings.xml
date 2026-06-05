@@ -58,6 +58,8 @@
     <string name="subs_annual_button">Yearly (7 days trial) - %s</string>
     <string name="load_data">Fetching price…</string>
 
+    <string name="settings_coffee">Buy a coffe</string>
+
 
     <string-array name="gorzkie_zale_titles">
         <item>Part I</item>
