@@ -54,8 +54,6 @@ fun MainMenuScreen(
             .fillMaxSize()
             .background(DeepPurple)
             .statusBarsPadding()
-        // Nie używamy navigationBarsPadding tutaj, bo baner reklamowy
-        // w MainActivity już zarządza dolną przestrzenią.
     ) {
         if (isLandscape) {
             // --- UKŁAD POZIOMY (LANDSCAPE) ---

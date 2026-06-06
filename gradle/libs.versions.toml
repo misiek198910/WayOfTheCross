@@ -19,8 +19,11 @@ retrofit = "2.9.0"
 gson = "2.10.1"
 glide = "4.16.0"
 lifecycleProcess = "2.7.0"
+playAppUpdate = "2.1.0"
 
 [libraries]
+play-app-update = { group = "com.google.android.play", name = "app-update", version.ref = "playAppUpdate" }
+play-app-update-ktx = { group = "com.google.android.play", name = "app-update-ktx", version.ref = "playAppUpdate" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" } # Może być potrzebne dla motywów

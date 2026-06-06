@@ -89,6 +89,9 @@ android {
 
 dependencies {
 
+    implementation(libs.play.app.update)
+    implementation(libs.play.app.update.ktx)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

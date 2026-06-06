@@ -73,6 +73,13 @@ import droga_krzyzowa.droga_krzyzowa.viewmodel.NewsViewModel
 import androidx.core.net.toUri
 import androidx.core.content.edit
 
+// --- Nowe importy dla In-App Updates ---
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.UpdateAvailability
+
 class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycleObserver {
 
     private lateinit var firebaseAnalytics: FirebaseAnalytics
@@ -85,8 +92,15 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
     private var isLoadingAd = false
 
     private val showPermissionDialog = mutableStateOf(false)
-
     private lateinit var notifPrefs: NotificationPrefs
+    private lateinit var appUpdateManager: AppUpdateManager
+    private val updateLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode != RESULT_OK) {
+            Log.w("InAppUpdate", "Aktualizacja anulowana lub nie powiodła się. Kod: ${result.resultCode}")
+        }
+    }
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -105,6 +119,8 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
 
         MobileAds.initialize(this) {}
         firebaseAnalytics = FirebaseAnalytics.getInstance(this)
+
+        checkForUpdate()
 
         loadInterstitialAd()
 
@@ -125,7 +141,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
         )
 
         setContent {
-            // FIX 2: Przypisujemy ViewModel do zmiennej klasowej, aby onStart mógł go widzieć [cite: 2026-02-23]
             mainViewModel = viewModel()
             val mContext = LocalContext.current
             val subscriptionManager = remember { SubscriptionManager.getInstance(mContext) }
@@ -183,8 +198,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
     }
 
     override fun onStart(owner: LifecycleOwner) {
-        super<DefaultLifecycleObserver>.onStart(owner)
-
         val subscriptionManager = SubscriptionManager.getInstance(this)
         val currentTime = System.currentTimeMillis()
 
@@ -199,15 +212,43 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
     }
 
     override fun onResume(owner: LifecycleOwner) {
-        super<DefaultLifecycleObserver>.onResume(owner)
         checkPromotionRedirect()
+
+        // Sprawdzenie, czy proces wymuszonej aktualizacji nie został przerwany
+        if (::appUpdateManager.isInitialized) {
+            appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
+                if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                    appUpdateManager.startUpdateFlowForResult(
+                        appUpdateInfo,
+                        updateLauncher,
+                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+                    )
+                }
+            }
+        }
     }
+    private fun checkForUpdate() {
+        appUpdateManager = AppUpdateManagerFactory.create(this)
+        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+
+        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+            ) {
+                appUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo,
+                    updateLauncher,
+                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+                )
+            }
+        }
+    }
+
     private fun checkPromotionRedirect() {
         val sharedPref = getSharedPreferences("promotion_prefs", android.content.Context.MODE_PRIVATE)
         val storeUrl = sharedPref.getString("pending_store_url", null)
 
         if (storeUrl != null) {
-            // Czyścimy flagę, żeby nie przekierowywało w nieskończoność
             sharedPref.edit { remove("pending_store_url") }
 
             try {
@@ -216,13 +257,13 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
                 }
                 startActivity(intent)
             } catch (e: Exception) {
-                // Jeśli market:// nie zadziała (np. brak Google Play), otwórz przez przeglądarkę
                 val webIntent = Intent(Intent.ACTION_VIEW,
                     "https://play.google.com/store/apps/details?id=mivs.mojaparafia".toUri())
                 startActivity(webIntent)
             }
         }
     }
+
     fun showInterstitialAdWithCallback(onAdClosed: () -> Unit) {
         if (mInterstitialAd != null) {
             mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
@@ -245,8 +286,8 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
             onAdClosed()
         }
     }
+
     fun loadInterstitialAd() {
-        // Jeśli reklama już jest lub właśnie się ładuje, nie rób nic [cite: 2026-02-23]
         if (mInterstitialAd != null || isLoadingAd) return
 
         isLoadingAd = true
@@ -268,44 +309,38 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
             }
         )
     }
-    fun showInterstitialAd() {
-        // 1. Sprawdzamy, czy reklama jest załadowana i czy żadna inna nie jest właśnie wyświetlana [cite: 2026-02-23]
-        if (mInterstitialAd != null && !isShowingAd) {
 
-            // 2. NATYCHMIAST blokujemy kolejne wywołania [cite: 2026-02-23]
+    fun showInterstitialAd() {
+        if (mInterstitialAd != null && !isShowingAd) {
             isShowingAd = true
             lastAdShowTime = System.currentTimeMillis()
 
             mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdDismissedFullScreenContent() {
-                    // 3. Po zamknięciu czyścimy reklamy i zdejmujemy blokadę [cite: 2026-02-23]
                     mInterstitialAd = null
                     isShowingAd = false
-                    loadInterstitialAd() // Ładujemy kolejną na zapas
+                    loadInterstitialAd()
                 }
 
                 override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                    // 4. Jeśli nie udało się pokazać, również zdejmujemy blokadę [cite: 2026-02-23]
                     mInterstitialAd = null
                     isShowingAd = false
                     loadInterstitialAd()
                 }
 
                 override fun onAdShowedFullScreenContent() {
-                    // Reklama jest widoczna
                     isShowingAd = true
                 }
             }
 
             mInterstitialAd?.show(this)
         } else {
-            // Jeśli nie było reklamy, spróbuj załadować, ale nie pokazuj nic na siłę [cite: 2026-02-23]
             loadInterstitialAd()
         }
     }
+
     fun loadAppOpenAd(onAdClosed: () -> Unit) {
         val request = AdRequest.Builder().build()
-
 
         AppOpenAd.load(
             this,
@@ -324,6 +359,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
             }
         )
     }
+
     private fun showAppOpenAd(onAdClosed: () -> Unit) {
         if (isShowingAd || appOpenAd == null) {
             onAdClosed()
@@ -349,6 +385,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
         }
         appOpenAd?.show(this)
     }
+
     fun requestConsentAndLoadAds(onComplete: () -> Unit) {
         val params = ConsentRequestParameters.Builder()
             .setTagForUnderAgeOfConsent(false)
@@ -372,21 +409,23 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
             }
         )
     }
+
     private fun checkNotificationPermission() {
         val isGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
                 this, Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
         } else {
-            true // Na starszych Androidach uprawnienia są nadane domyślnie [cite: 2026-02-17]
+            true
         }
 
         if (isGranted) {
-            initFirebaseMessaging() // Inicjalizuj, jeśli już mamy zgodę [cite: 2026-02-28]
+            initFirebaseMessaging()
         } else if (!notifPrefs.hasHandledPermissionRequest) {
             showPermissionDialog.value = true
         }
     }
+
     private fun initFirebaseMessaging() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
@@ -405,6 +444,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(), DefaultLifecycl
             }
     }
 }
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
